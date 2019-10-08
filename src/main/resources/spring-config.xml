@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop" xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+    <!--组件扫描 扫描有注解的类-->
+    <context:component-scan base-package="com.jc"/>
+    <aop:aspectj-autoproxy />
+    <mvc:annotation-driven/>
+    <mvc:default-servlet-handler/>
+    <!--加载配置文件-->
+    <context:property-placeholder location="classpath:db.properties"/>
+    <!--数据源配置-->
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource">
+        <property name="url" value="${jdbc.url}"/>
+        <property name="username" value="${jdbc.username}" />
+        <property name="password" value="${jdbc.password}" />
+    </bean>
+    <!--SqlSessionFactory交给Spring管理-->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"/>
+        <property name="mapperLocations" value="classpath*:mapper/*Mapper.xml"/>
+    </bean>
+    <!--让spring生成mapper接口代理实现类-->
+    <bean id="mapperScannerConfigurer" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <!--传入工厂-->
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
+        <!--扫描包哪些包下的接口-->
+        <property name="basePackage" value="com.jc.dao"/>
+    </bean>
+
+    <!-- 配置视图解析器 -->
+    <!-- InternalResourceViewResolver：支持JSP视图解析 -->
+    <!-- viewClass：JstlView表示JSP模板页面需要使用JSTL标签库，所以classpath中必须包含jstl的相关jar包； -->
+    <!-- prefix 和suffix：查找视图页面的前缀和后缀，最终视图的址为： -->
+    <!-- 前缀+逻辑视图名+后缀，逻辑视图名需要在controller中返回ModelAndView指定，比如逻辑视图名为hello，-->
+    <!-- 则最终返回的jsp视图地址 "WEB-INF/view/hello.jsp" -->
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="viewClass" value="org.springframework.web.servlet.view.JstlView"/>
+        <!--<property name="prefix" value="/WEB-INF/JSP/"/>-->
+        <property name="suffix" value=".jsp"/>
+    </bean>
+    <!--配置文件上传的解析器-->
+    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        <!--允许上传的文件最大大小  单位是byte-->
+        <property name="maxUploadSize" value="60000000"/>
+    </bean>
+    <!--事务管理器-->
+    <bean id="txManager"   class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+    <!-- 配置注解的事务AOP -->
+    <aop:aspectj-autoproxy/>
+    <tx:annotation-driven transaction-manager="txManager"/>
+    <!--拦截器-->
+    <mvc:interceptors>
+        <!-- 匹配的是url路径， 如果不配置或/**,将拦截所有的Controller -->
+        <mvc:interceptor>
+            <!--拦截所有-->
+            <mvc:mapping path="/**"/>
+            <!--不拦截登录-->
+            <mvc:exclude-mapping path="/account/login"/>
+            <mvc:exclude-mapping path="/css/**"/>
+            <mvc:exclude-mapping path="/js/**"/>
+            <mvc:exclude-mapping path="/fonts/**"/>
+            <mvc:exclude-mapping path="/plugin/**"/>
+            <bean class="com.jc.interceptor.LoginInterceptor"/>
+        </mvc:interceptor>
+    </mvc:interceptors>
+</beans>

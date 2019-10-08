@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jc.dao.ClassesMapper">
+    <select id="listClass" resultMap="clMap">
+        select cl_id,cl_name,cl_no from t_classes
+    </select>
+    <delete id="delete">
+        delete from t_classes
+        <where>
+            <foreach collection="list" item="id" open="cl_id in (" close=")" separator=",">
+                #{id}
+            </foreach>
+        </where>
+    </delete>
+    <update id="update" parameterType="com.jc.entity.Classes">
+        update t_classes set cl_no=#{clNo},cl_name=#{clName},cl_morning=#{clMorning},cl_evening=#{clEvening}
+        where cl_id=#{clId}
+    </update>
+    <insert id="add" parameterType="com.jc.entity.Classes">
+        insert into t_classes (cl_no, cl_name, cl_morning, cl_evening) values
+        (#{clNo},#{clName},#{clMorning},#{clEvening})
+    </insert>
+    <select id="finById" resultMap="clMap" parameterType="integer">
+        select <include refid="clSql"/> from t_classes where cl_id=#{clId}
+    </select>
+    <select id="list" resultMap="clMap">
+        select <include refid="clSql"/> from t_classes
+        <where>
+            <if test="username!=null and username!=''">
+                cl_no like '%${username}%' or cl_name like '%${username}%'
+            </if>
+        </where>
+        limit #{page},#{limit}
+    </select>
+    <select id="count" resultType="integer">
+        select count(1) from t_classes
+    </select>
+    <resultMap id="clMap" type="com.jc.entity.Classes">
+        <id column="cl_id" property="clId"/>
+        <result column="cl_no" property="clNo"/>
+        <result column="cl_name" property="clName"/>
+        <result column="cl_morning" property="clMorning"/>
+        <result column="cl_evening" property="clEvening"/>
+    </resultMap>
+    <sql id="clSql">
+        cl_id,
+        cl_no,
+        cl_name,
+        cl_morning,
+        cl_evening
+    </sql>
+</mapper>

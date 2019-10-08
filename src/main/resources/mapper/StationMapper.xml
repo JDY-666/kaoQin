@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jc.dao.StationMapper">
+    <delete id="delete">
+        delete from t_station
+        <where>
+            <foreach collection="list" item="id" open="sta_id in (" close=")" separator=",">
+                #{id}
+            </foreach>
+        </where>
+    </delete>
+    <update id="updateStation" parameterType="com.jc.entity.Station">
+        update t_station set sta_no=#{staNo},sta_name=#{staName},dep_id=#{depId},sta_superior=#{staSuperior},
+        sta_category=#{staCategory,typeHandler=com.jc.util.EnumOrderStatusHandler},sta_desc=#{staDesc} where sta_id=#{staId}
+    </update>
+    <select id="findById" resultMap="staMap">
+        select t2.dep_name,<include refid="staSql"/> from t_station t1,t_department t2
+        where t1.dep_id=t2.dep_id and t1.sta_id=#{staId}
+    </select>
+    <insert id="addStation" parameterType="com.jc.entity.Station">
+        insert into t_station (sta_no, sta_name, dep_id, sta_superior, sta_category, sta_desc) values
+        (#{staNo},#{staName},#{depId},#{staSuperior},#{staCategory,typeHandler=com.jc.util.EnumOrderStatusHandler},#{staDesc})
+    </insert>
+    <select id="listStaName" resultMap="staMap">
+        select sta_no,sta_name from t_station
+    </select>
+    <select id="listStation" resultMap="staMap">
+        select t2.dep_name,<include refid="staSql"/> from t_station t1,t_department t2
+        <where>
+            t1.dep_id=t2.dep_id
+            <if test="username!=null and username!=''">
+                and sta_no like '%${username}%' or sta_name like '%${username}%'
+            </if>
+        </where>
+        limit #{page},#{limit}
+    </select>
+    <select id="count" resultType="integer">
+        select count(1) from t_station
+    </select>
+    <resultMap id="staMap" type="com.jc.entity.Station">
+        <id column="sta_id" property="staId"/>
+        <result property="staNo" column="sta_no"/>
+        <result property="staName" column="sta_name"/>
+        <!--<result property="depId" column="dep_id"/>-->
+        <result property="staSuperior" column="sta_superior"/>
+        <result property="staCategory" column="sta_category" typeHandler="com.jc.util.EnumOrderStatusHandler"/>
+        <result property="staDesc" column="sta_desc"/>
+        <association property="department" javaType="com.jc.entity.Department">
+            <id column="dep_id" property="depId"/>
+            <result column="dep_name" property="depName"/>
+        </association>
+    </resultMap>
+    <sql id="staSql">
+        sta_id,
+        sta_no,
+        sta_name,
+        sta_superior,
+        sta_category,
+        sta_desc
+    </sql>
+
+
+</mapper>

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jc.dao.PaySalaryMapper">
+    <delete id="delete">
+        delete from t_paysalary
+        <where>
+            <foreach collection="list" item="id" open="pay_id in (" close=")" separator=",">
+                #{id}
+            </foreach>
+        </where>
+    </delete>
+    <update id="update" parameterType="com.jc.entity.PaySalary">
+        update t_paysalary set pay_start_date=#{payStartDate},pay_end_date=#{payEndDate},pay_salary=#{paySalary} where pay_no=#{payNo}
+    </update>
+    <select id="findByNo" parameterType="string" resultMap="payMap">
+        select <include refid="paySql"/> from t_paysalary
+        where pay_no=#{payNo}
+    </select>
+    <insert id="add" parameterType="com.jc.entity.PaySalary">
+        insert into t_paysalary (pay_no, pay_salary, pay_start_date, pay_end_date, pay_name) values
+        (#{payNo},#{paySalary},#{payStartDate},#{payEndDate},#{payName})
+    </insert>
+    <select id="list" resultMap="payMap">
+        select <include refid="paySql"/> from t_paysalary
+        <where>
+            <if test="username!=null and username!=''">
+                and pay_no like '%${username}%' or pay_name like '%${username}%'
+            </if>
+        </where>
+        limit #{page},#{limit}
+    </select>
+    <select id="count" resultType="integer">
+        select count(1) from t_paysalary
+        <where>
+            <if test="username!=null and username!=''">
+                and pay_no like '%${username}%' or pay_name like '%${username}%'
+            </if>
+        </where>
+    </select>
+    <resultMap id="payMap" type="com.jc.entity.PaySalary">
+        <id property="payId" column="pay_id"/>
+        <result property="payNo" column="pay_no"/>
+        <result property="payName" column="pay_name"/>
+        <result property="paySalary" column="pay_salary"/>
+        <result property="payStartDate" column="pay_start_date"/>
+        <result property="payEndDate" column="pay_end_date"/>
+    </resultMap>
+    <sql id="paySql">
+        pay_id,
+        pay_no,
+        pay_name,
+        pay_salary,
+        pay_start_date,
+        pay_end_date
+    </sql>
+</mapper>

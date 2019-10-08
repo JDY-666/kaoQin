@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jc.dao.CheckReportMapper">
+    <select id="findByNo" parameterType="string" resultMap="reportMap">
+        select report_morning,report_evening from t_checkreport
+        where report_no=#{reportNo} and NOT report_status='旷工'
+    </select>
+    <select id="detail" parameterType="integer" resultMap="reportMap">
+        select <include refid="reportSql"/> from t_checkreport where report_id=#{reportId}
+    </select>
+    <select id="count" resultType="integer">
+        select count(1) from t_checkreport
+        <where>
+            <if test="username!=null and username!=''">
+                report_no like '%${username}%' or report_name like '%${username}%'
+            </if>
+        </where>
+    </select>
+    <select id="list" resultMap="reportMap">
+        select <include refid="reportSql"/> from t_checkreport
+        <where>
+            <if test="username!=null and username!=''">
+                report_no like '%${username}%' or report_name like '%${username}%'
+            </if>
+              and ( (report_morning >= '${startDay}' and report_morning <![CDATA[<=]]>'${endDay}') or (report_evening >= '${startDay}' and report_evening <![CDATA[<=]]>'${endDay}') )
+        </where>
+        limit #{page},#{limit}
+    </select>
+    <select id="findByDate" resultMap="reportMap">
+        select <include refid="reportSql"/> from t_checkreport where
+        report_morning like '${date}%' or report_evening like '${date}%'
+    </select>
+    <insert id="add">
+        insert into t_checkreport (report_no, report_name, report_morning, report_evening, report_status) values
+        (#{reportNo},#{reportName},#{reportMorning},#{reportEvening},#{reportStatus})
+    </insert>
+    <update id="update">
+        update t_checkreport set <if test="reportEvening!=null">report_evening=#{reportEvening},</if>
+        <if test="reportMorning!=null">report_morning=#{reportMorning},</if>
+        report_status=#{reportStatus} where report_id=#{reportId}
+    </update>
+    <resultMap id="reportMap" type="com.jc.entity.CheckReport">
+        <id column="report_id" property="reportId"/>
+        <result column="report_no" property="reportNo"/>
+        <result column="report_name" property="reportName"/>
+        <result column="report_morning" property="reportMorning"/>
+        <result column="report_evening" property="reportEvening"/>
+        <result column="report_status" property="reportStatus"/>
+    </resultMap>
+    <sql id="reportSql">
+        report_id,
+        report_no,
+        report_name,
+        report_morning,
+        report_evening,
+        report_status
+    </sql>
+</mapper>

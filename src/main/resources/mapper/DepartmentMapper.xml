@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jc.dao.DepartmentMapper">
+    <delete id="delete">
+        delete from t_department
+        <where>
+            <foreach collection="list" item="id" open="dep_id in (" close=")" separator=",">
+                #{id}
+            </foreach>
+        </where>
+    </delete>
+    <update id="updateDep" parameterType="com.jc.entity.Department">
+        update t_department set dep_no=#{depNo},dep_name=#{depName},dep_leader=#{depLeader},
+        dep_duty=#{depDuty},dep_higher=#{depHigher} where dep_id=#{depId}
+    </update>
+    <select id="findById" parameterType="java.lang.Integer" resultMap="depMap">
+        select <include refid="depSql"/> from t_department where dep_id=#{depId}
+    </select>
+    <insert id="addDep" parameterType="com.jc.entity.Department">
+        insert into t_department (dep_no, dep_name, dep_leader, dep_duty, dep_higher) values
+        (#{depNo},#{depName},#{depLeader},#{depDuty},#{depHigher})
+    </insert>
+    <select id="listDep" resultMap="depMap">
+        select <include refid="depSql"/> from t_department
+        <where>
+            <if test="username!=null and username!=''">
+                dep_no like '%${username}%' or dep_name like '%${username}%'
+            </if>
+        </where>
+        limit #{page},#{limit}
+    </select>
+    <select id="listDepName" resultMap="depMap">
+        select dep_name,dep_id from t_department
+    </select>
+    <select id="count" resultType="integer">
+        select count(1) from t_department
+    </select>
+    <sql id="depSql">
+        dep_id,
+        dep_no,
+        dep_name,
+        dep_leader,
+        dep_duty,
+        dep_higher
+    </sql>
+    <resultMap id="depMap" type="com.jc.entity.Department">
+        <id column="dep_id" property="depId"/>
+        <result column="dep_no" property="depNo"/>
+        <result column="dep_name" property="depName"/>
+        <result column="dep_leader" property="depLeader"/>
+        <result column="dep_duty" property="depDuty"/>
+        <result column="dep_higher" property="depHigher"/>
+    </resultMap>
+</mapper>

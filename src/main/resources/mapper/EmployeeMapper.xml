@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jc.dao.EmployeeMapper">
+    <update id="updateEmployee" parameterType="com.jc.entity.Employee">
+        update t_employees set emp_no=#{empNo},emp_name=#{empName},emp_sex=#{empSex},emp_age=#{empAge},emp_nation=#{empNation}
+        ,emp_identity=#{empIdentity},emp_salary=#{empSalary},emp_phone=#{empPhone},emp_emergency_name=#{emergencyName},
+        emp_emergency_phone=#{emergencyPhone},emp_desc=#{empDesc},emp_sta=#{empSta},cl_id=#{clId} where emp_id=#{empId}
+    </update>
+    <delete id="delete">
+        delete from t_employees
+        <where>
+            <foreach collection="list" item="id" open="emp_id in (" close=")" separator=",">
+                #{id}
+            </foreach>
+        </where>
+    </delete>
+    <select id="findById" parameterType="integer" resultMap="empMap">
+        select <include refid="empSql"/> from t_employees
+        <where>
+            <if test="empId!=null and empId!=''">
+                emp_id = #{empId}
+            </if>
+            <if test="empNo!=null and empNo!=''">
+                emp_no = #{empNo}
+            </if>
+        </where>
+    </select>
+    <insert id="add" parameterType="com.jc.entity.Employee">
+        insert into t_employees (emp_no, emp_name, emp_sex, emp_age, emp_nation, emp_identity, emp_salary, emp_phone, emp_emergency_name, emp_emergency_phone, emp_desc, emp_sta, cl_id)
+        values (#{empNo},#{empName},#{empSex},#{empAge},#{empNation},#{empIdentity},#{empSalary},#{empPhone},#{emergencyName},#{emergencyPhone},#{empDesc},#{empSta},#{clId})
+    </insert>
+    <select id="listEmployee" resultMap="empMap">
+        select t2.sta_name,<include refid="empSql"/> from t_employees t1,t_station t2
+        <where>
+            t1.emp_sta=t2.sta_no
+            <if test="username!=null and username!=''">
+                and emp_name like '%${username}%'
+            </if>
+        </where>
+        limit #{page},#{limit}
+    </select>
+    <select id="listEmName" resultType="java.lang.String">
+        select emp_name from t_employees
+    </select>
+    <select id="listAll" resultMap="empMap">
+        select <include refid="empSql"/> from t_employees
+    </select>
+    <select id="count" resultType="integer">
+        select count(1) from t_employees
+    </select>
+    <resultMap id="empMap" type="com.jc.entity.Employee">
+        <id column="emp_id" property="empId"/>
+        <result column="emp_no" property="empNo"/>
+        <result column="emp_name" property="empName"/>
+        <result column="emp_sex" property="empSex"/>
+        <result column="emp_age" property="empAge"/>
+        <result column="emp_nation" property="empNation"/>
+        <result column="emp_identity" property="empIdentity"/>
+        <result column="emp_salary" property="empSalary"/>
+        <result column="emp_phone" property="empPhone"/>
+        <result column="emp_emergency_name" property="emergencyName"/>
+        <result column="emp_emergency_phone" property="emergencyPhone"/>
+        <result column="emp_desc" property="empDesc"/>
+        <result column="cl_id" property="clId"/>
+        <association property="station" javaType="com.jc.entity.Station">
+            <result column="sta_no" property="staNo"/>
+            <result column="sta_name" property="staName"/>
+        </association>
+
+    </resultMap>
+    <sql id="empSql">
+        emp_id,
+        emp_no,
+        emp_name,
+        emp_sex,
+        emp_age,
+        emp_nation,
+        emp_identity,
+        emp_salary,
+        emp_phone,
+        emp_emergency_name,
+        emp_emergency_phone,
+        emp_desc,
+        emp_sta,
+        cl_id
+    </sql>
+</mapper>
